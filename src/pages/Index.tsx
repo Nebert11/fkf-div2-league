@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { TeamManager } from '@/components/TeamManager';
-import { FixtureGenerator } from '@/components/FixtureGenerator';
+import { FixtureGenerator } from '@/components/fixture-generator/FixtureGenerator';
 import { FixtureDisplay } from '@/components/FixtureDisplay';
 import { StandingsPage } from '@/components/StandingsPage';
 import { Team, Fixture } from '@/types/football';
