@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { TeamManager } from '@/components/TeamManager';
 import { FixtureGenerator } from '@/components/FixtureGenerator';
 import { FixtureDisplay } from '@/components/FixtureDisplay';
+import { StandingsPage } from '@/components/StandingsPage';
 import { Team, Fixture } from '@/types/football';
 
 const Index = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [activeTab, setActiveTab] = useState<'teams' | 'generate' | 'fixtures'>('teams');
+  const [activeTab, setActiveTab] = useState<'teams' | 'generate' | 'fixtures' | 'standings'>('teams');
 
   const handleTeamsUpdate = (updatedTeams: Team[]) => {
     setTeams(updatedTeams);
@@ -19,6 +20,10 @@ const Index = () => {
   const handleFixturesGenerated = (generatedFixtures: Fixture[]) => {
     setFixtures(generatedFixtures);
     setActiveTab('fixtures');
+  };
+
+  const handleFixturesUpdate = (updatedFixtures: Fixture[]) => {
+    setFixtures(updatedFixtures);
   };
 
   return (
@@ -73,6 +78,19 @@ const Index = () => {
             >
               📅 View Fixtures ({fixtures.length})
             </button>
+            <button
+              onClick={() => setActiveTab('standings')}
+              disabled={fixtures.length === 0}
+              className={`flex-1 py-3 px-6 rounded-md font-medium transition-all duration-200 ${
+                activeTab === 'standings'
+                  ? 'bg-green-600 text-white shadow-md'
+                  : fixtures.length === 0
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-green-600 hover:bg-green-50'
+              }`}
+            >
+              📊 Standings & Stats
+            </button>
           </div>
         </div>
 
@@ -86,6 +104,13 @@ const Index = () => {
           )}
           {activeTab === 'fixtures' && (
             <FixtureDisplay fixtures={fixtures} teams={teams} />
+          )}
+          {activeTab === 'standings' && (
+            <StandingsPage 
+              teams={teams} 
+              fixtures={fixtures} 
+              onFixturesUpdate={handleFixturesUpdate}
+            />
           )}
         </div>
       </div>
