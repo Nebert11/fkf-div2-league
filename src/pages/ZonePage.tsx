@@ -1,18 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { TeamManager } from '@/components/TeamManager';
 import { FixtureGenerator } from '@/components/fixture-generator/FixtureGenerator';
 import { FixtureDisplay } from '@/components/FixtureDisplay';
 import { StandingsPage } from '@/components/StandingsPage';
 import { Navigation } from '@/components/Navigation';
-import { Team, Fixture } from '@/types/football';
+import { useZoneData } from '@/contexts/ZoneDataContext';
+import { Team, Fixture, Player } from '@/types/football';
 import { ZONES } from '@/constants/zones';
 
 const ZonePage = () => {
   const { zoneId } = useParams<{ zoneId: string }>();
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const { getZoneData, updateZoneTeams, updateZoneFixtures, updateZonePlayers } = useZoneData();
   const [activeTab, setActiveTab] = useState<'teams' | 'generate' | 'fixtures' | 'standings'>('teams');
 
   const zone = ZONES.find(z => z.id === zoneId);
@@ -26,20 +26,29 @@ const ZonePage = () => {
     );
   }
 
+  // Get zone-specific data
+  const zoneData = getZoneData(zone.id);
+  const { teams, fixtures, players } = zoneData;
+
   const handleTeamsUpdate = (updatedTeams: Team[]) => {
     const teamsWithZone = updatedTeams.map(team => ({ ...team, zoneId: zone.id }));
-    setTeams(teamsWithZone);
-    setFixtures([]);
+    updateZoneTeams(zone.id, teamsWithZone);
+    // Clear fixtures when teams change
+    updateZoneFixtures(zone.id, []);
   };
 
   const handleFixturesGenerated = (generatedFixtures: Fixture[]) => {
     const fixturesWithZone = generatedFixtures.map(fixture => ({ ...fixture, zoneId: zone.id }));
-    setFixtures(fixturesWithZone);
+    updateZoneFixtures(zone.id, fixturesWithZone);
     setActiveTab('fixtures');
   };
 
   const handleFixturesUpdate = (updatedFixtures: Fixture[]) => {
-    setFixtures(updatedFixtures);
+    updateZoneFixtures(zone.id, updatedFixtures);
+  };
+
+  const handlePlayersUpdate = (updatedPlayers: Player[]) => {
+    updateZonePlayers(zone.id, updatedPlayers);
   };
 
   return (
@@ -127,7 +136,9 @@ const ZonePage = () => {
             <StandingsPage 
               teams={teams} 
               fixtures={fixtures} 
+              players={players}
               onFixturesUpdate={handleFixturesUpdate}
+              onPlayersUpdate={handlePlayersUpdate}
               zoneName={zone.name}
             />
           )}

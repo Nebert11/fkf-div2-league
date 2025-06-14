@@ -12,18 +12,21 @@ import { Download } from 'lucide-react';
 interface StandingsPageProps {
   teams: Team[];
   fixtures: Fixture[];
+  players: Player[];
   onFixturesUpdate: (fixtures: Fixture[]) => void;
+  onPlayersUpdate: (players: Player[]) => void;
   zoneName?: string;
 }
 
 export const StandingsPage: React.FC<StandingsPageProps> = ({
   teams,
   fixtures,
+  players,
   onFixturesUpdate,
+  onPlayersUpdate,
   zoneName = 'Zone',
 }) => {
   const [activeTab, setActiveTab] = useState<'results' | 'table' | 'players' | 'stats'>('table');
-  const [players, setPlayers] = useState<Player[]>([]);
 
   // Calculate player stats from fixture goals
   const playerStats = useMemo(() => {
@@ -337,7 +340,7 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
         <PlayerManager
           players={players}
           teams={teams}
-          onPlayersUpdate={setPlayers}
+          onPlayersUpdate={onPlayersUpdate}
           playerStats={playerStats}
           onPlayerStatsUpdate={() => {}}
         />
