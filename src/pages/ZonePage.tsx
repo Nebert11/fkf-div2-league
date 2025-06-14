@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TeamManager } from '@/components/TeamManager';
 import { FixtureGenerator } from '@/components/fixture-generator/FixtureGenerator';
 import { FixtureDisplay } from '@/components/FixtureDisplay';
 import { StandingsPage } from '@/components/StandingsPage';
+import { Navigation } from '@/components/Navigation';
 import { Team, Fixture } from '@/types/football';
 import { ZONES } from '@/constants/zones';
 
@@ -16,7 +18,12 @@ const ZonePage = () => {
   const zone = ZONES.find(z => z.id === zoneId);
   
   if (!zone) {
-    return <div className="p-6 text-center">Zone not found</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+        <Navigation />
+        <div className="p-6 text-center">Zone not found</div>
+      </div>
+    );
   }
 
   const handleTeamsUpdate = (updatedTeams: Team[]) => {
@@ -37,6 +44,8 @@ const ZonePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+      <Navigation />
+      
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg">
         <div className="container mx-auto px-6 py-8">
@@ -119,6 +128,7 @@ const ZonePage = () => {
               teams={teams} 
               fixtures={fixtures} 
               onFixturesUpdate={handleFixturesUpdate}
+              zoneName={zone.name}
             />
           )}
         </div>

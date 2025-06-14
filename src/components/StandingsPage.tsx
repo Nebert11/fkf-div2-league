@@ -7,17 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EnhancedMatchResultsManager } from './EnhancedMatchResultsManager';
 import { PlayerManager } from './PlayerManager';
+import { Download } from 'lucide-react';
 
 interface StandingsPageProps {
   teams: Team[];
   fixtures: Fixture[];
   onFixturesUpdate: (fixtures: Fixture[]) => void;
+  zoneName?: string;
 }
 
 export const StandingsPage: React.FC<StandingsPageProps> = ({
   teams,
   fixtures,
   onFixturesUpdate,
+  zoneName = 'Zone',
 }) => {
   const [activeTab, setActiveTab] = useState<'results' | 'table' | 'players' | 'stats'>('table');
   const [players, setPlayers] = useState<Player[]>([]);
@@ -141,6 +144,84 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
     return 'bg-gray-500';
   };
 
+  const downloadPDF = () => {
+    // Create HTML content for PDF
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>FKF Division 2 League - ${zoneName} Standings</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .title { color: #16a34a; font-size: 24px; font-weight: bold; }
+            .subtitle { color: #666; font-size: 18px; margin-top: 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+            th { background-color: #16a34a; color: white; }
+            .position { font-weight: bold; }
+            .team-name { text-align: left; font-weight: bold; }
+            .positive { color: #16a34a; }
+            .negative { color: #dc2626; }
+            .date { text-align: center; margin-top: 30px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="title">⚽ FKF Division 2 League</div>
+            <div class="subtitle">${zoneName} - League Table</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Position</th>
+                <th>Team</th>
+                <th>Played</th>
+                <th>Won</th>
+                <th>Drawn</th>
+                <th>Lost</th>
+                <th>Goals For</th>
+                <th>Goals Against</th>
+                <th>Goal Difference</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${standings.map(team => `
+                <tr>
+                  <td class="position">${team.position}</td>
+                  <td class="team-name">${team.teamName}</td>
+                  <td>${team.played}</td>
+                  <td>${team.won}</td>
+                  <td>${team.drawn}</td>
+                  <td>${team.lost}</td>
+                  <td>${team.goalsFor}</td>
+                  <td>${team.goalsAgainst}</td>
+                  <td class="${team.goalDifference >= 0 ? 'positive' : 'negative'}">
+                    ${team.goalDifference > 0 ? '+' : ''}${team.goalDifference}
+                  </td>
+                  <td class="position">${team.points}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="date">Generated on: ${new Date().toLocaleDateString()}</div>
+        </body>
+      </html>
+    `;
+
+    // Create blob and download
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `FKF-Division-2-${zoneName}-Standings.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Navigation Tabs */}
@@ -181,12 +262,22 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
       {activeTab === 'table' && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🏆 League Table
-            </CardTitle>
-            <CardDescription>
-              Current standings based on match results
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  🏆 League Table
+                </CardTitle>
+                <CardDescription>
+                  Current standings based on match results
+                </CardDescription>
+              </div>
+              {standings.length > 0 && (
+                <Button onClick={downloadPDF} className="flex items-center gap-2">
+                  <Download size={16} />
+                  Download PDF
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <Table>

@@ -3,11 +3,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Navigation } from '@/components/Navigation';
 import { ZONES } from '@/constants/zones';
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
+      <Navigation />
+      
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg">
         <div className="container mx-auto px-6 py-8">
