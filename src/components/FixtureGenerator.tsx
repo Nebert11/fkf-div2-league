@@ -67,7 +67,8 @@ export const FixtureGenerator: React.FC<FixtureGeneratorProps> = ({ teams, onFix
             homeTeamId: homeTeam.id,
             awayTeamId: awayTeam.id,
             date: new Date(currentDate),
-            stadium: homeTeam.stadium
+            stadium: homeTeam.stadium,
+            played: false
           });
         }
       }
@@ -93,7 +94,8 @@ export const FixtureGenerator: React.FC<FixtureGeneratorProps> = ({ teams, onFix
         homeTeamId: fixture.awayTeamId, // Swap home and away
         awayTeamId: fixture.homeTeamId,
         date: new Date(currentDate),
-        stadium: teams.find(t => t.id === fixture.awayTeamId)?.stadium || ''
+        stadium: teams.find(t => t.id === fixture.awayTeamId)?.stadium || '',
+        played: false
       });
       
       // Increment matchweek for every few matches to spread them across weeks
