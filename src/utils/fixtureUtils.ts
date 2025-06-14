@@ -1,3 +1,4 @@
+
 import { Team, Fixture } from '@/types/football';
 
 export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixture[] => {
@@ -11,7 +12,7 @@ export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixt
   
   // If odd number of teams, add a "bye" team
   if (numTeams % 2 === 1) {
-    teamList.push({ id: 'bye', name: 'BYE', stadium: '', createdAt: new Date() });
+    teamList.push({ id: 'bye', name: 'BYE', stadium: '', zoneId: teams[0]?.zoneId || 'zone-a', createdAt: new Date() });
   }
   
   const totalTeams = teamList.length;
@@ -38,7 +39,8 @@ export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixt
           awayTeamId: awayTeam.id,
           date: new Date(currentDate),
           stadium: homeTeam.stadium,
-          played: false
+          played: false,
+          zoneId: homeTeam.zoneId
         });
       }
     }
@@ -65,7 +67,8 @@ export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixt
       awayTeamId: fixture.homeTeamId,
       date: new Date(currentDate),
       stadium: teams.find(t => t.id === fixture.awayTeamId)?.stadium || '',
-      played: false
+      played: false,
+      zoneId: fixture.zoneId
     });
     
     // Increment matchweek for every few matches to spread them across weeks

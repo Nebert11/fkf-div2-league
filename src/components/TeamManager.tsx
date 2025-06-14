@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,9 +9,10 @@ import { Team } from '@/types/football';
 interface TeamManagerProps {
   teams: Team[];
   onTeamsUpdate: (teams: Team[]) => void;
+  zoneId?: string;
 }
 
-export const TeamManager: React.FC<TeamManagerProps> = ({ teams, onTeamsUpdate }) => {
+export const TeamManager: React.FC<TeamManagerProps> = ({ teams, onTeamsUpdate, zoneId = 'zone-a' }) => {
   const [isAddingTeam, setIsAddingTeam] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [formData, setFormData] = useState({
@@ -39,6 +39,7 @@ export const TeamManager: React.FC<TeamManagerProps> = ({ teams, onTeamsUpdate }
       const newTeam: Team = {
         id: Date.now().toString(),
         ...formData,
+        zoneId,
         createdAt: new Date()
       };
       onTeamsUpdate([...teams, newTeam]);

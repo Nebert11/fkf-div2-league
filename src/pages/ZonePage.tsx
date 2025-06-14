@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TeamManager } from '@/components/TeamManager';
@@ -107,7 +106,7 @@ const ZonePage = () => {
         {/* Content */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {activeTab === 'teams' && (
-            <TeamManager teams={teams} onTeamsUpdate={handleTeamsUpdate} />
+            <TeamManager teams={teams} onTeamsUpdate={handleTeamsUpdate} zoneId={zone.id} />
           )}
           {activeTab === 'generate' && (
             <FixtureGenerator teams={teams} onFixturesGenerated={handleFixturesGenerated} />
