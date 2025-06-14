@@ -33,37 +33,50 @@ export const ZoneDataProvider: React.FC<ZoneDataProviderProps> = ({ children }) 
   const [zoneDataMap, setZoneDataMap] = useState<Record<string, ZoneData>>({});
 
   const getZoneData = (zoneId: string): ZoneData => {
+    console.log('Getting zone data for:', zoneId, 'Current data:', zoneDataMap[zoneId]);
     return zoneDataMap[zoneId] || { teams: [], fixtures: [], players: [] };
   };
 
   const updateZoneTeams = (zoneId: string, teams: Team[]) => {
-    setZoneDataMap(prev => ({
-      ...prev,
-      [zoneId]: {
-        ...getZoneData(zoneId),
-        teams,
-      }
-    }));
+    console.log('Updating teams for zone:', zoneId, 'Teams:', teams);
+    setZoneDataMap(prev => {
+      const currentZoneData = prev[zoneId] || { teams: [], fixtures: [], players: [] };
+      const newData = {
+        ...prev,
+        [zoneId]: {
+          ...currentZoneData,
+          teams,
+        }
+      };
+      console.log('New zone data map:', newData);
+      return newData;
+    });
   };
 
   const updateZoneFixtures = (zoneId: string, fixtures: Fixture[]) => {
-    setZoneDataMap(prev => ({
-      ...prev,
-      [zoneId]: {
-        ...getZoneData(zoneId),
-        fixtures,
-      }
-    }));
+    setZoneDataMap(prev => {
+      const currentZoneData = prev[zoneId] || { teams: [], fixtures: [], players: [] };
+      return {
+        ...prev,
+        [zoneId]: {
+          ...currentZoneData,
+          fixtures,
+        }
+      };
+    });
   };
 
   const updateZonePlayers = (zoneId: string, players: Player[]) => {
-    setZoneDataMap(prev => ({
-      ...prev,
-      [zoneId]: {
-        ...getZoneData(zoneId),
-        players,
-      }
-    }));
+    setZoneDataMap(prev => {
+      const currentZoneData = prev[zoneId] || { teams: [], fixtures: [], players: [] };
+      return {
+        ...prev,
+        [zoneId]: {
+          ...currentZoneData,
+          players,
+        }
+      };
+    });
   };
 
   const value = {

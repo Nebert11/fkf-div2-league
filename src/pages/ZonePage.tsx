@@ -30,7 +30,10 @@ const ZonePage = () => {
   const zoneData = getZoneData(zone.id);
   const { teams, fixtures, players } = zoneData;
 
+  console.log('ZonePage render - Zone:', zone.id, 'Teams:', teams, 'Active tab:', activeTab);
+
   const handleTeamsUpdate = (updatedTeams: Team[]) => {
+    console.log('handleTeamsUpdate called with:', updatedTeams);
     const teamsWithZone = updatedTeams.map(team => ({ ...team, zoneId: zone.id }));
     updateZoneTeams(zone.id, teamsWithZone);
     // Clear fixtures when teams change
