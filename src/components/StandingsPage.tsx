@@ -1,10 +1,11 @@
+
 import React, { useState, useMemo } from 'react';
 import { Team, Fixture, TeamStanding, Player, PlayerStats } from '@/types/football';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MatchResultsManager } from './MatchResultsManager';
+import { EnhancedMatchResultsManager } from './EnhancedMatchResultsManager';
 import { PlayerManager } from './PlayerManager';
 
 interface StandingsPageProps {
@@ -20,7 +21,39 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'results' | 'table' | 'players' | 'stats'>('table');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
+
+  // Calculate player stats from fixture goals
+  const playerStats = useMemo(() => {
+    const statsMap = new Map<string, PlayerStats>();
+    
+    // Initialize stats for all players
+    players.forEach(player => {
+      const team = teams.find(t => t.id === player.teamId);
+      statsMap.set(player.id, {
+        playerId: player.id,
+        playerName: player.name,
+        teamName: team?.name || 'Unknown',
+        goals: 0,
+        assists: 0,
+        cleanSheets: 0,
+        appearances: 0,
+      });
+    });
+
+    // Calculate goals from fixtures
+    fixtures.forEach(fixture => {
+      if (fixture.goals) {
+        fixture.goals.forEach(goal => {
+          const stat = statsMap.get(goal.playerId);
+          if (stat) {
+            stat.goals++;
+          }
+        });
+      }
+    });
+
+    return Array.from(statsMap.values());
+  }, [players, fixtures, teams]);
 
   // Calculate team standings
   const standings = useMemo(() => {
@@ -98,22 +131,6 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
     return playerStats
       .filter(stat => stat.goals > 0)
       .sort((a, b) => b.goals - a.goals)
-      .slice(0, 10);
-  }, [playerStats]);
-
-  // Get most assists
-  const topAssists = useMemo(() => {
-    return playerStats
-      .filter(stat => stat.assists > 0)
-      .sort((a, b) => b.assists - a.assists)
-      .slice(0, 10);
-  }, [playerStats]);
-
-  // Get clean sheets (goalkeepers)
-  const cleanSheets = useMemo(() => {
-    return playerStats
-      .filter(stat => stat.cleanSheets > 0)
-      .sort((a, b) => b.cleanSheets - a.cleanSheets)
       .slice(0, 10);
   }, [playerStats]);
 
@@ -217,9 +234,10 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
       )}
 
       {activeTab === 'results' && (
-        <MatchResultsManager
+        <EnhancedMatchResultsManager
           fixtures={fixtures}
           teams={teams}
+          players={players}
           onFixturesUpdate={onFixturesUpdate}
         />
       )}
@@ -230,12 +248,12 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
           teams={teams}
           onPlayersUpdate={setPlayers}
           playerStats={playerStats}
-          onPlayerStatsUpdate={setPlayerStats}
+          onPlayerStatsUpdate={() => {}}
         />
       )}
 
       {activeTab === 'stats' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Scorers */}
           <Card>
             <CardHeader>
@@ -253,73 +271,52 @@ export const StandingsPage: React.FC<StandingsPageProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topScorers.map((player, index) => (
+                  {topScorers.length > 0 ? topScorers.map((player, index) => (
                     <TableRow key={player.playerId}>
                       <TableCell className="font-medium">{player.playerName}</TableCell>
                       <TableCell>{player.teamName}</TableCell>
                       <TableCell className="text-center font-bold">{player.goals}</TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center text-gray-500">
+                        No goals recorded yet
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
 
-          {/* Most Assists */}
+          {/* Season Summary */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                🎯 Most Assists
+                📈 Season Summary
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-center">Assists</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topAssists.map((player) => (
-                    <TableRow key={player.playerId}>
-                      <TableCell className="font-medium">{player.playerName}</TableCell>
-                      <TableCell>{player.teamName}</TableCell>
-                      <TableCell className="text-center font-bold">{player.assists}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* Clean Sheets */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🥅 Clean Sheets
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-center">Clean Sheets</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {cleanSheets.map((player) => (
-                    <TableRow key={player.playerId}>
-                      <TableCell className="font-medium">{player.playerName}</TableCell>
-                      <TableCell>{player.teamName}</TableCell>
-                      <TableCell className="text-center font-bold">{player.cleanSheets}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span>Total Matches:</span>
+                  <span className="font-bold">{fixtures.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Matches Played:</span>
+                  <span className="font-bold">{fixtures.filter(f => f.played).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total Goals:</span>
+                  <span className="font-bold">
+                    {fixtures.reduce((sum, f) => sum + (f.goals?.length || 0), 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Teams:</span>
+                  <span className="font-bold">{teams.length}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

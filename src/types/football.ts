@@ -4,7 +4,23 @@ export interface Team {
   name: string;
   stadium: string;
   logo?: string;
+  zoneId: string;
   createdAt: Date;
+}
+
+export interface Zone {
+  id: string;
+  name: string;
+  letter: string;
+}
+
+export interface Goal {
+  id: string;
+  fixtureId: string;
+  playerId: string;
+  playerName: string;
+  teamId: string;
+  minute?: number;
 }
 
 export interface Fixture {
@@ -17,6 +33,8 @@ export interface Fixture {
   homeScore?: number;
   awayScore?: number;
   played: boolean;
+  zoneId: string;
+  goals?: Goal[];
 }
 
 export interface TeamStanding {
