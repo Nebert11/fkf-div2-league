@@ -14,16 +14,366 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fixtures: {
+        Row: {
+          away_team_id: string
+          created_at: string
+          home_team_id: string
+          id: string
+          is_played: boolean | null
+          match_date: string
+          round_number: number | null
+          season_id: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          away_team_id: string
+          created_at?: string
+          home_team_id: string
+          id?: string
+          is_played?: boolean | null
+          match_date: string
+          round_number?: number | null
+          season_id: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          away_team_id?: string
+          created_at?: string
+          home_team_id?: string
+          id?: string
+          is_played?: boolean | null
+          match_date?: string
+          round_number?: number | null
+          season_id?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixtures_away_team_id_fkey"
+            columns: ["away_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_home_team_id_fkey"
+            columns: ["home_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_results: {
+        Row: {
+          away_team_score: number
+          created_at: string
+          fixture_id: string
+          home_team_score: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          away_team_score?: number
+          created_at?: string
+          fixture_id: string
+          home_team_score?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          away_team_score?: number
+          created_at?: string
+          fixture_id?: string
+          home_team_score?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_results_fixture_id_fkey"
+            columns: ["fixture_id"]
+            isOneToOne: true
+            referencedRelation: "fixtures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          id: string
+          jersey_number: number | null
+          name: string
+          position: string | null
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          id?: string
+          jersey_number?: number | null
+          name: string
+          position?: string | null
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          id?: string
+          jersey_number?: number | null
+          name?: string
+          position?: string | null
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          start_date: string
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          start_date: string
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          start_date?: string
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      standings: {
+        Row: {
+          drawn: number | null
+          goal_difference: number | null
+          goals_against: number | null
+          goals_for: number | null
+          id: string
+          lost: number | null
+          played: number | null
+          points: number | null
+          season_id: string
+          team_id: string
+          updated_at: string
+          won: number | null
+        }
+        Insert: {
+          drawn?: number | null
+          goal_difference?: number | null
+          goals_against?: number | null
+          goals_for?: number | null
+          id?: string
+          lost?: number | null
+          played?: number | null
+          points?: number | null
+          season_id: string
+          team_id: string
+          updated_at?: string
+          won?: number | null
+        }
+        Update: {
+          drawn?: number | null
+          goal_difference?: number | null
+          goals_against?: number | null
+          goals_for?: number | null
+          id?: string
+          lost?: number | null
+          played?: number | null
+          points?: number | null
+          season_id?: string
+          team_id?: string
+          updated_at?: string
+          won?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standings_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "standings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          home_ground: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          home_ground?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          home_ground?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      zones: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +500,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
