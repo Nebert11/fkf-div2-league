@@ -1,5 +1,6 @@
 
 import { Team, Fixture } from '@/types/football';
+import { v4 as uuidv4 } from 'uuid';
 
 export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixture[] => {
   const fixtures: Fixture[] = [];
@@ -51,7 +52,7 @@ export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixt
       }
 
       roundFixtures.push({
-        id: `${round + 1}-${homeTeam.id}-${awayTeam.id}`,
+        id: uuidv4(),
         matchweek: round + 1,
         homeTeamId: homeTeam.id,
         awayTeamId: awayTeam.id,
@@ -84,7 +85,7 @@ export const generateRoundRobinFixtures = (teams: Team[], startDate: Date): Fixt
     if (!homeTeam) continue;
 
     fixtures.push({
-      id: `${fixture.matchweek + numRounds}-${fixture.awayTeamId}-${fixture.homeTeamId}`,
+      id: uuidv4(),
       matchweek: fixture.matchweek + numRounds,
       homeTeamId: fixture.awayTeamId,
       awayTeamId: fixture.homeTeamId,
