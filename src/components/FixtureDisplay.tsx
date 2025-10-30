@@ -4,6 +4,7 @@ import { Calendar, MapPin, Download, ChevronLeft, ChevronRight } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Team, Fixture } from '@/types/football';
+import { jsPDF } from "jspdf";
 
 interface FixtureDisplayProps {
   fixtures: Fixture[];
@@ -36,10 +37,23 @@ export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams 
   };
 
   const handleDownloadPDF = () => {
-    // This would integrate with a PDF generation library
-    console.log('Generating PDF for all fixtures...');
-    // Placeholder for PDF generation
-    alert('PDF generation would be implemented here using a library like jsPDF or Puppeteer');
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Fixtures", 10, 10);
+    doc.setFontSize(12);
+    doc.text("No.", 10, 20);
+    doc.text("Home Team", 30, 20);
+    doc.text("Away Team", 80, 20);
+    doc.text("Date", 130, 20);
+    doc.line(10, 22, 200, 22);
+    fixtures.forEach((fixture, idx) => {
+      const y = 30 + idx * 10;
+      doc.text(String(idx + 1), 10, y);
+      doc.text(fixture.homeTeam, 30, y);
+      doc.text(fixture.awayTeam, 80, y);
+      doc.text(fixture.date, 130, y); // Format as desired
+    });
+    doc.save("fixtures.pdf");
   };
 
   if (fixtures.length === 0) {
