@@ -98,7 +98,7 @@ export const ZoneDataProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [zoneDataMap, setZoneDataMap] = useState<Record<string, ZoneData>>({});
   const { user } = useAuth();
   // For the season, you might set dynamically - here, dummy is used for mapping
-  const dummySeasonId = "season-1";
+  // All references to dummySeasonId should not be used.
 
   useEffect(() => {
     if (!user) {
