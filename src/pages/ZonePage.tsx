@@ -133,7 +133,7 @@ const ZonePage = () => {
             <FixtureGenerator teams={teams} onFixturesGenerated={handleFixturesGenerated} />
           )}
           {activeTab === 'fixtures' && (
-            <FixtureDisplay fixtures={fixtures} teams={teams} />
+            <FixtureDisplay fixtures={fixtures} teams={teams} zoneName={zone.name} />
           )}
           {activeTab === 'standings' && (
             <StandingsPage 
