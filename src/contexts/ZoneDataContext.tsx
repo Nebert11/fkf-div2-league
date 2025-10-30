@@ -3,7 +3,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Team, Fixture, Player } from '@/types/football';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { SEASON_ID_2025_26 } from '@/constants/seasons';
+// Remove this import as season_id will not be used
+// import { SEASON_ID_2025_26 } from '@/constants/seasons';
 
 interface ZoneData {
   teams: Team[];
@@ -72,7 +73,7 @@ function toDbFixture(fix: Fixture) {
     home_score: fix.homeScore,
     away_score: fix.awayScore,
     is_played: fix.played,
-    season_id: SEASON_ID_2025_26,
+    // season_id: SEASON_ID_2025_26,   // Removed
   };
 }
 function mapPlayer(dbPlayer: any): Player {
