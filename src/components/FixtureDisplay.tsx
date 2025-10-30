@@ -48,10 +48,18 @@ export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams 
     doc.line(10, 22, 200, 22);
     fixtures.forEach((fixture, idx) => {
       const y = 30 + idx * 10;
+      const homeTeam = String(fixture.homeTeam ?? "-");
+      const awayTeam = String(fixture.awayTeam ?? "-");
+      let displayDate = "-";
+      if (fixture.date instanceof Date) {
+        displayDate = fixture.date.toLocaleDateString();
+      } else if (fixture.date) {
+        displayDate = String(fixture.date);
+      }
       doc.text(String(idx + 1), 10, y);
-      doc.text(fixture.homeTeam, 30, y);
-      doc.text(fixture.awayTeam, 80, y);
-      doc.text(fixture.date, 130, y); // Format as desired
+      doc.text(homeTeam, 30, y);
+      doc.text(awayTeam, 80, y);
+      doc.text(displayDate, 130, y);
     });
     doc.save("fixtures.pdf");
   };
