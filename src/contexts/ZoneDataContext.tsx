@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Team, Fixture, Player } from '@/types/football';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ZoneData {
   teams: Team[];
@@ -24,60 +25,170 @@ export const useZoneData = () => {
   return context;
 };
 
+function mapTeam(dbTeam: any): Team {
+  return {
+    id: dbTeam.id,
+    name: dbTeam.name,
+    logo: dbTeam.logo_url || undefined,
+    stadium: dbTeam.home_ground,
+    zoneId: dbTeam.zone_id,
+    createdAt: dbTeam.created_at ? new Date(dbTeam.created_at) : new Date(),
+  };
+}
+function toDbTeam(team: Team) {
+  return {
+    id: team.id,
+    name: team.name,
+    logo_url: team.logo,
+    home_ground: team.stadium,
+    zone_id: team.zoneId,
+    created_at: team.createdAt instanceof Date ? team.createdAt.toISOString() : team.createdAt,
+  };
+}
+function mapFixture(dbFixture: any): Fixture {
+  return {
+    id: dbFixture.id,
+    matchweek: dbFixture.round_number,
+    homeTeamId: dbFixture.home_team_id,
+    awayTeamId: dbFixture.away_team_id,
+    date: dbFixture.match_date ? new Date(dbFixture.match_date) : new Date(),
+    stadium: dbFixture.venue,
+    homeScore: dbFixture.home_score,
+    awayScore: dbFixture.away_score,
+    played: dbFixture.is_played,
+    zoneId: '', // Will be filled in after grouping based on team
+    goals: [], // Add goals mapping if stored separately
+  };
+}
+function toDbFixture(fix: Fixture, seasonId: string) {
+  return {
+    id: fix.id,
+    round_number: fix.matchweek,
+    home_team_id: fix.homeTeamId,
+    away_team_id: fix.awayTeamId,
+    match_date: fix.date instanceof Date ? fix.date.toISOString() : fix.date,
+    venue: fix.stadium,
+    home_score: fix.homeScore,
+    away_score: fix.awayScore,
+    is_played: fix.played,
+    season_id: seasonId, // required for DB
+  };
+}
+function mapPlayer(dbPlayer: any): Player {
+  return {
+    id: dbPlayer.id,
+    name: dbPlayer.name,
+    position: dbPlayer.position,
+    teamId: dbPlayer.team_id,
+    createdAt: dbPlayer.created_at ? new Date(dbPlayer.created_at) : new Date(),
+  };
+}
+function toDbPlayer(player: Player) {
+  return {
+    id: player.id,
+    name: player.name,
+    position: player.position,
+    team_id: player.teamId,
+    created_at: player.createdAt instanceof Date ? player.createdAt.toISOString() : player.createdAt,
+  };
+}
+
 export const ZoneDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [zoneDataMap, setZoneDataMap] = useState<Record<string, ZoneData>>({});
+  const { user } = useAuth();
+  // For the season, you might set dynamically - here, dummy is used for mapping
+  const dummySeasonId = "season-1";
 
-  // Fetch all teams/fixtures/players on mount
   useEffect(() => {
+    if (!user) {
+      setZoneDataMap({});
+      return;
+    }
     async function fetchAll() {
-      // Teams
       const { data: teamData } = await supabase.from('teams').select('*');
-      // Fixtures
       const { data: fixtureData } = await supabase.from('fixtures').select('*');
-      // Players
       const { data: playerData } = await supabase.from('players').select('*');
 
-      const zones = new Set<string>();
-      (teamData || []).forEach(t => zones.add(t.zoneId));
-      (fixtureData || []).forEach(f => zones.add(f.zoneId));
-      (playerData || []).forEach(p => zones.add(p.zoneId));
+      // Organize teams by zone
+      const teamsByZone: Record<string, Team[]> = {};
+      (teamData || []).forEach(dbTeam => {
+        const team = mapTeam(dbTeam);
+        if (!teamsByZone[team.zoneId]) teamsByZone[team.zoneId] = [];
+        teamsByZone[team.zoneId].push(team);
+      });
 
+      // Helper for fixture/player zone lookups
+      const teamZoneId: Record<string, string> = {};
+      Object.entries(teamsByZone).forEach(([zoneId, arr]) => {
+        arr.forEach(team => { teamZoneId[team.id] = zoneId; });
+      });
+
+      // Group fixtures by zone (zone of home team)
+      const fixturesByZone: Record<string, Fixture[]> = {};
+      (fixtureData || []).forEach(dbFix => {
+        const fix = mapFixture(dbFix);
+        // Prefer home team for zone grouping; fallback to away
+        const homeZone = teamZoneId[fix.homeTeamId];
+        const zoneId = homeZone || teamZoneId[fix.awayTeamId];
+        if (!zoneId) return;
+        fix.zoneId = zoneId;
+        if (!fixturesByZone[zoneId]) fixturesByZone[zoneId] = [];
+        fixturesByZone[zoneId].push(fix);
+      });
+
+      // Group players by zone (zone of their team)
+      const playersByZone: Record<string, Player[]> = {};
+      (playerData || []).forEach(dbPlayer => {
+        const player = mapPlayer(dbPlayer);
+        const zoneId = teamZoneId[player.teamId];
+        if (!zoneId) return;
+        if (!playersByZone[zoneId]) playersByZone[zoneId] = [];
+        playersByZone[zoneId].push(player);
+      });
+
+      // Union all zoneIds
+      const allZoneIds = new Set<string>([...Object.keys(teamsByZone), ...Object.keys(fixturesByZone), ...Object.keys(playersByZone)]);
       const newMap: Record<string, ZoneData> = {};
-      zones.forEach(zoneId => {
+      allZoneIds.forEach(zoneId => {
         newMap[zoneId] = {
-          teams: (teamData || []).filter(t => t.zoneId === zoneId),
-          fixtures: (fixtureData || []).filter(f => f.zoneId === zoneId),
-          players: (playerData || []).filter(p => p.zoneId === zoneId),
+          teams: teamsByZone[zoneId] || [],
+          fixtures: fixturesByZone[zoneId] || [],
+          players: playersByZone[zoneId] || [],
         };
       });
       setZoneDataMap(newMap);
     }
     fetchAll();
-  }, []);
+  }, [user]);
 
   const getZoneData = (zoneId: string): ZoneData => {
     return zoneDataMap[zoneId] || { teams: [], fixtures: [], players: [] };
   };
 
   const updateZoneTeams = async (zoneId: string, teams: Team[]) => {
-    await supabase.from('teams').delete().eq('zoneId', zoneId);
-    if (teams.length > 0) await supabase.from('teams').upsert(teams);
+    await supabase.from('teams').delete().eq('zone_id', zoneId);
+    if (teams.length > 0) await supabase.from('teams').upsert(teams.map(toDbTeam));
     setZoneDataMap(prev => {
       const current = prev[zoneId] || { teams: [], fixtures: [], players: [] };
       return { ...prev, [zoneId]: { ...current, teams } };
     });
   };
   const updateZoneFixtures = async (zoneId: string, fixtures: Fixture[]) => {
-    await supabase.from('fixtures').delete().eq('zoneId', zoneId);
-    if (fixtures.length > 0) await supabase.from('fixtures').upsert(fixtures);
+    // All fixtures in this zone
+    await supabase.from('fixtures').delete().in('id', fixtures.map(f => f.id));
+    if (fixtures.length > 0) {
+      await supabase.from('fixtures').upsert(
+        fixtures.map(f => toDbFixture(f, dummySeasonId))
+      );
+    }
     setZoneDataMap(prev => {
       const current = prev[zoneId] || { teams: [], fixtures: [], players: [] };
       return { ...prev, [zoneId]: { ...current, fixtures } };
     });
   };
   const updateZonePlayers = async (zoneId: string, players: Player[]) => {
-    await supabase.from('players').delete().eq('zoneId', zoneId);
-    if (players.length > 0) await supabase.from('players').upsert(players);
+    await supabase.from('players').delete().in('id', players.map(p => p.id));
+    if (players.length > 0) await supabase.from('players').upsert(players.map(toDbPlayer));
     setZoneDataMap(prev => {
       const current = prev[zoneId] || { teams: [], fixtures: [], players: [] };
       return { ...prev, [zoneId]: { ...current, players } };
