@@ -9,9 +9,10 @@ import { jsPDF } from "jspdf";
 interface FixtureDisplayProps {
   fixtures: Fixture[];
   teams: Team[];
+  zoneName?: string;
 }
 
-export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams }) => {
+export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams, zoneName }) => {
   const [selectedMatchweek, setSelectedMatchweek] = useState<number>(1);
 
   const getTeamById = (id: string): Team | undefined => {
@@ -38,18 +39,26 @@ export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams 
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
+    // Determine zone name from prop or from first fixture/team zone
+    let zoneTitle = zoneName || '';
+    if (!zoneTitle && fixtures.length > 0 && fixtures[0].zoneId) {
+      const zone = fixtures[0].zoneId;
+      zoneTitle = zone;
+    }
     doc.setFontSize(16);
-    doc.text("Fixtures", 10, 10);
+    // Zone Name as PDF Title
+    doc.text(`${zoneTitle ? zoneTitle + ' ' : ''}Fixtures`, 10, 10);
     doc.setFontSize(12);
     doc.text("No.", 10, 20);
-    doc.text("Home Team", 30, 20);
-    doc.text("Away Team", 80, 20);
-    doc.text("Date", 130, 20);
+    doc.text("Home Team", 25, 20);
+    doc.text("Away Team", 75, 20);
+    doc.text("Date", 125, 20);
+    doc.text("Home Ground", 155, 20);
     doc.line(10, 22, 200, 22);
     fixtures.forEach((fixture, idx) => {
       const y = 30 + idx * 10;
-      const homeTeam = String(fixture.homeTeam ?? "-");
-      const awayTeam = String(fixture.awayTeam ?? "-");
+      const homeTeamObj = getTeamById(fixture.homeTeamId) || { name: "-", stadium: "-" };
+      const awayTeamObj = getTeamById(fixture.awayTeamId) || { name: "-" };
       let displayDate = "-";
       if (fixture.date instanceof Date) {
         displayDate = fixture.date.toLocaleDateString();
@@ -57,9 +66,10 @@ export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams 
         displayDate = String(fixture.date);
       }
       doc.text(String(idx + 1), 10, y);
-      doc.text(homeTeam, 30, y);
-      doc.text(awayTeam, 80, y);
-      doc.text(displayDate, 130, y);
+      doc.text(String(homeTeamObj.name ?? "-"), 25, y);
+      doc.text(String(awayTeamObj.name ?? "-"), 75, y);
+      doc.text(displayDate, 125, y);
+      doc.text(String(homeTeamObj.stadium ?? "-"), 155, y);
     });
     doc.save("fixtures.pdf");
   };
