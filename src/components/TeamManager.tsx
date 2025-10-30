@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Team } from '@/types/football';
+import { v4 as uuidv4 } from 'uuid';
 
 interface TeamManagerProps {
   teams: Team[];
@@ -37,7 +38,7 @@ export const TeamManager: React.FC<TeamManagerProps> = ({ teams, onTeamsUpdate, 
     } else {
       // Add new team
       const newTeam: Team = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         ...formData,
         zoneId,
         createdAt: new Date()

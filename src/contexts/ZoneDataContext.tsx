@@ -166,20 +166,41 @@ export const ZoneDataProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const updateZoneTeams = async (zoneId: string, teams: Team[]) => {
-    await supabase.from('teams').delete().eq('zone_id', zoneId);
-    if (teams.length > 0) await supabase.from('teams').upsert(teams.map(toDbTeam));
+    const { error: deleteError } = await supabase.from('teams').delete().eq('zone_id', zoneId);
+    if (deleteError) {
+      console.error('Supabase delete teams error:', deleteError);
+    }
+    if (teams.length > 0) {
+      const { error: upsertError } = await supabase.from('teams').upsert(teams.map(toDbTeam));
+      if (upsertError) {
+        console.error('Supabase upsert teams error:', upsertError);
+      } else {
+        console.log('Teams upserted to Supabase!', teams);
+      }
+    } else {
+      console.log('Teams deleted from Supabase for zone', zoneId);
+    }
     setZoneDataMap(prev => {
       const current = prev[zoneId] || { teams: [], fixtures: [], players: [] };
       return { ...prev, [zoneId]: { ...current, teams } };
     });
   };
   const updateZoneFixtures = async (zoneId: string, fixtures: Fixture[]) => {
-    // All fixtures in this zone
-    await supabase.from('fixtures').delete().in('id', fixtures.map(f => f.id));
+    const { error: deleteError } = await supabase.from('fixtures').delete().in('id', fixtures.map(f => f.id));
+    if (deleteError) {
+      console.error('Supabase delete fixtures error:', deleteError);
+    }
     if (fixtures.length > 0) {
-      await supabase.from('fixtures').upsert(
+      const { error: upsertError } = await supabase.from('fixtures').upsert(
         fixtures.map(f => toDbFixture(f, dummySeasonId))
       );
+      if (upsertError) {
+        console.error('Supabase upsert fixtures error:', upsertError);
+      } else {
+        console.log('Fixtures upserted to Supabase!', fixtures);
+      }
+    } else {
+      console.log('Fixtures deleted from Supabase for zone', zoneId);
     }
     setZoneDataMap(prev => {
       const current = prev[zoneId] || { teams: [], fixtures: [], players: [] };
@@ -187,8 +208,20 @@ export const ZoneDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     });
   };
   const updateZonePlayers = async (zoneId: string, players: Player[]) => {
-    await supabase.from('players').delete().in('id', players.map(p => p.id));
-    if (players.length > 0) await supabase.from('players').upsert(players.map(toDbPlayer));
+    const { error: deleteError } = await supabase.from('players').delete().in('id', players.map(p => p.id));
+    if (deleteError) {
+      console.error('Supabase delete players error:', deleteError);
+    }
+    if (players.length > 0) {
+      const { error: upsertError } = await supabase.from('players').upsert(players.map(toDbPlayer));
+      if (upsertError) {
+        console.error('Supabase upsert players error:', upsertError);
+      } else {
+        console.log('Players upserted to Supabase!', players);
+      }
+    } else {
+      console.log('Players deleted from Supabase for zone', zoneId);
+    }
     setZoneDataMap(prev => {
       const current = prev[zoneId] || { teams: [], fixtures: [], players: [] };
       return { ...prev, [zoneId]: { ...current, players } };
