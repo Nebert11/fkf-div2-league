@@ -39,37 +39,96 @@ export const FixtureDisplay: React.FC<FixtureDisplayProps> = ({ fixtures, teams,
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    // Determine zone name from prop or from first fixture/team zone
+    // Zone name at top
     let zoneTitle = zoneName || '';
     if (!zoneTitle && fixtures.length > 0 && fixtures[0].zoneId) {
       const zone = fixtures[0].zoneId;
       zoneTitle = zone;
     }
     doc.setFontSize(16);
-    // Zone Name as PDF Title
     doc.text(`${zoneTitle ? zoneTitle + ' ' : ''}Fixtures`, 10, 10);
-    doc.setFontSize(12);
-    doc.text("No.", 10, 20);
-    doc.text("Home Team", 25, 20);
-    doc.text("Away Team", 75, 20);
-    doc.text("Date", 125, 20);
-    doc.text("Home Ground", 155, 20);
-    doc.line(10, 22, 200, 22);
-    fixtures.forEach((fixture, idx) => {
-      const y = 30 + idx * 10;
-      const homeTeamObj = getTeamById(fixture.homeTeamId) || { name: "-", stadium: "-" };
-      const awayTeamObj = getTeamById(fixture.awayTeamId) || { name: "-" };
-      let displayDate = "-";
-      if (fixture.date instanceof Date) {
-        displayDate = fixture.date.toLocaleDateString();
-      } else if (fixture.date) {
-        displayDate = String(fixture.date);
+
+    let y = 20;
+
+    // Get ordered list of matchweeks
+    const matchweekNumbers = Object.keys(fixturesByMatchweek)
+      .map(num => parseInt(num))
+      .sort((a, b) => a - b);
+
+    // Space to leave before new matchweek title
+    const headerSpacing = 10;
+    const rowHeight = 8;
+    const maxRowsPerPage = 28; // fit reasonably; jsPDF default A4 ~297mm, ~30-40 lines
+
+    let rowCountOnPage = 0;
+
+    matchweekNumbers.forEach((weekNum, matchweekIdx) => {
+      const matchweekFixtures = fixturesByMatchweek[weekNum];
+      if (!matchweekFixtures?.length) return;
+
+      if (matchweekIdx > 0) {
+        y += headerSpacing;
+        rowCountOnPage += 2;
       }
-      doc.text(String(idx + 1), 10, y);
-      doc.text(String(homeTeamObj.name ?? "-"), 25, y);
-      doc.text(String(awayTeamObj.name ?? "-"), 75, y);
-      doc.text(displayDate, 125, y);
-      doc.text(String(homeTeamObj.stadium ?? "-"), 155, y);
+      // New page if needed
+      if (rowCountOnPage > maxRowsPerPage) {
+        doc.addPage();
+        y = 20;
+        rowCountOnPage = 0;
+      }
+      doc.setFontSize(14);
+      doc.text(`Matchweek ${weekNum}`, 10, y);
+      y += rowHeight;
+      rowCountOnPage++;
+
+      // Table headers
+      doc.setFontSize(12);
+      doc.text("No.", 10, y);
+      doc.text("Home Team", 25, y);
+      doc.text("Away Team", 75, y);
+      doc.text("Date", 125, y);
+      doc.text("Home Ground", 155, y);
+      y += rowHeight;
+      rowCountOnPage++;
+
+      doc.line(10, y - 3, 200, y - 3);
+
+      matchweekFixtures.forEach((fixture, idx) => {
+        // New page if needed
+        if (rowCountOnPage > maxRowsPerPage) {
+          doc.addPage();
+          y = 20;
+          rowCountOnPage = 0;
+          doc.setFontSize(14);
+          doc.text(`Matchweek ${weekNum} (cont.)`, 10, y);
+          y += rowHeight;
+          rowCountOnPage++;
+          doc.setFontSize(12);
+          doc.text("No.", 10, y);
+          doc.text("Home Team", 25, y);
+          doc.text("Away Team", 75, y);
+          doc.text("Date", 125, y);
+          doc.text("Home Ground", 155, y);
+          y += rowHeight;
+          rowCountOnPage++;
+          doc.line(10, y - 3, 200, y - 3);
+        }
+        const homeTeamObj = getTeamById(fixture.homeTeamId) || { name: "-", stadium: "-" };
+        const awayTeamObj = getTeamById(fixture.awayTeamId) || { name: "-" };
+        let displayDate = "-";
+        if (fixture.date instanceof Date) {
+          displayDate = fixture.date.toLocaleDateString();
+        } else if (fixture.date) {
+          displayDate = String(fixture.date);
+        }
+        doc.text(String(idx + 1), 10, y);
+        doc.text(String(homeTeamObj.name ?? "-"), 25, y);
+        doc.text(String(awayTeamObj.name ?? "-"), 75, y);
+        doc.text(displayDate, 125, y);
+        doc.text(String(homeTeamObj.stadium ?? "-"), 155, y);
+        y += rowHeight;
+        rowCountOnPage++;
+      });
     });
     doc.save("fixtures.pdf");
   };
