@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { Team, Fixture, Player } from '@/types/football';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { SEASON_ID_2025_26 } from '@/constants/seasons';
 
 interface ZoneData {
   teams: Team[];
@@ -60,7 +61,7 @@ function mapFixture(dbFixture: any): Fixture {
     goals: [], // Add goals mapping if stored separately
   };
 }
-function toDbFixture(fix: Fixture, seasonId: string) {
+function toDbFixture(fix: Fixture) {
   return {
     id: fix.id,
     round_number: fix.matchweek,
@@ -71,7 +72,7 @@ function toDbFixture(fix: Fixture, seasonId: string) {
     home_score: fix.homeScore,
     away_score: fix.awayScore,
     is_played: fix.played,
-    season_id: seasonId, // required for DB
+    season_id: SEASON_ID_2025_26,
   };
 }
 function mapPlayer(dbPlayer: any): Player {
@@ -192,7 +193,7 @@ export const ZoneDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
     if (fixtures.length > 0) {
       const { error: upsertError } = await supabase.from('fixtures').upsert(
-        fixtures.map(f => toDbFixture(f, dummySeasonId))
+        fixtures.map(f => toDbFixture(f))
       );
       if (upsertError) {
         console.error('Supabase upsert fixtures error:', upsertError);
